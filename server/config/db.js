@@ -18,6 +18,8 @@ if (ssl) {
     poolConfig.ssl = ssl;
 }
 
-const pool = new Pool(poolConfig);
+// Keep each Netlify Function instance's local pool small; the hosted database pooler handles concurrency.
+const maxConnections = Number(process.env.DB_POOL_MAX || (process.env.NETLIFY === "true" ? 1 : 10));
+const pool = new Pool({ ...poolConfig, max: maxConnections });
 
 module.exports = pool;

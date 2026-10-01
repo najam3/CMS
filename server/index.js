@@ -20,12 +20,15 @@ const deactivateUser = require("./controller/deactivateUser");
 const requireAdmin = require("./middleware/requireAdmin");
 
 const app = express();
+const api = express.Router();
 app.use(express.json());
 
-const allowedOrigins = (process.env.CLIENT_ORIGINS || "http://localhost:3001")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+const allowedOrigins = [
+    ...(process.env.CLIENT_ORIGINS || "http://localhost:3001")
+        .split(",")
+        .map((origin) => origin.trim()),
+    process.env.URL,
+].filter(Boolean);
 
 app.use(cors({
     origin(origin, callback) {
@@ -34,23 +37,31 @@ app.use(cors({
     },
 }));
 
-app.post("/login", login);
-app.use(requireAdmin);
+api.post("/login", login);
+api.use(requireAdmin);
 
-app.post("/createUser", createUser);
-app.post("/editUser", editUser);
-app.post("/deleteUser", deleteUser);
-app.post("/deactivateUser/:id", deactivateUser);
-app.get("/getUsers", getUsers);
-app.get("/getAllUsers", getAllUsers);
-app.get("/getAllArticles", getAllArticles);
-app.get("/getUserRoleCount", getUserRoleCount);
-app.post("/createNewarticle", createArticle);
-app.post("/updateDraft", updateDraft);
-app.post("/publishDraft", publishDraft);
-app.post("/deleteArticle/:id", deleteArticle);
-app.get("/searchUsers", searchUser);
+api.post("/createUser", createUser);
+api.post("/editUser", editUser);
+api.post("/deleteUser", deleteUser);
+api.post("/deactivateUser/:id", deactivateUser);
+api.get("/getUsers", getUsers);
+api.get("/getAllUsers", getAllUsers);
+api.get("/getAllArticles", getAllArticles);
+api.get("/getUserRoleCount", getUserRoleCount);
+api.post("/createNewarticle", createArticle);
+api.post("/updateDraft", updateDraft);
+api.post("/publishDraft", publishDraft);
+api.post("/deleteArticle/:id", deleteArticle);
+api.get("/searchUsers", searchUser);
 
-app.listen(process.env.PORT || 3000, () => {
-    console.log("Server listening on port " + (process.env.PORT || 3000));
-});
+// Keep the existing local API URLs working and expose the same router under /api for Netlify.
+app.use(api);
+app.use("/api", api);
+
+if (require.main === module) {
+    app.listen(process.env.PORT || 3000, () => {
+        console.log("Server listening on port " + (process.env.PORT || 3000));
+    });
+}
+
+module.exports = app;

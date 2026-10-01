@@ -1,0 +1,22 @@
+﻿[build]
+  command = "npm ci --prefix Client/cms && npm --prefix Client/cms run build"
+  publish = "Client/cms/build"
+  functions = "netlify/functions"
+
+[build.environment]
+  REACT_APP_API_URL = "/api"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["express", "cors", "pg", "bcrypt", "jsonwebtoken", "dotenv", "serverless-http"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

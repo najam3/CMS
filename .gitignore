@@ -6,3 +6,4 @@
 # Dependencies and generated output
 node_modules/
 Client/cms/build/
+.netlify/
