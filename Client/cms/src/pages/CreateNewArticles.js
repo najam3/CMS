@@ -109,62 +109,12 @@ const CreateNewArticles = () => {
 
 
 
-    // const saveDraft = async () => {
-    //     try {
-    //         if (draftId) {
-    //             const response = await updateDraft({ content, id: draftId });
-    //             toast.success(response?.message || "Draft updated.");
-    //             return response;
-    //         }
-
-    //         const response = await createNewArticle({ status: "draft", content, author_id });
-    //         const createdId = response?.created_article?.id;
-    //         if (createdId == null) throw new Error(response?.message || "Draft could not be saved.");
-    //         setDraftId(createdId);
-    //         localStorage.setItem("draftId", JSON.stringify(createdId));
-    //         toast.success(response?.message || "Draft saved.");
-    //         return response;
-    //     } catch (error) {
-    //         toast.error(error.response?.data?.message || error.message || "Could not save the draft. Please try again.");
-    //     }
-    // };
 
     const savedLabel = savedAt
         ? `Saved at ${new Date(savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
         : "Changes save automatically";
 
 
-    const publishArticle = async () => {
-        try {
-            let response;
-            if (draftId) {
-                try {
-                    response = await publishDraft({ content, id: draftId });
-                } catch (error) {
-                    // A saved ID can become stale if that draft was deleted. Publish the current text as a new article.
-                    if (error.response?.status !== 404) throw error;
-                }
-            }
-
-            // A brand-new article has no draft ID, so create it directly as published.
-            if (!response?.published_draft) {
-                response = await createNewArticle({ status: "published", content, author_id });
-                if (!response?.created_article) {
-                    throw new Error(response?.message || "Article could not be published.");
-                }
-            }
-
-            toast.success(response?.message || "Article published successfully.");
-            localStorage.removeItem("draftId");
-            localStorage.removeItem(DRAFT_KEY);
-            setDraftId(null);
-            setContent("");
-            setTitle("");
-            setSavedAt(null);
-        } catch (error) {
-            toast.error(error.response?.data?.message || error.message || "Could not publish the article. Please try again.");
-        }
-    };
 
 
 
@@ -182,7 +132,7 @@ const CreateNewArticles = () => {
                     <Stack direction="row" spacing={1.5} alignItems="center">
                         <Typography variant="caption" color="text.secondary">{savedLabel}</Typography>
                         <Button variant="outlined" startIcon={<SaveOutlinedIcon />} onClick={saveDraft}>Save draft</Button>
-                        <Button onClick={publishArticle} variant="contained" disabled={!content.trim()}>Publish</Button>
+                        <Button variant="contained" disabled={!content.trim()}>Publish</Button>
                     </Stack>
                 </Stack>
                 <TextEditor
