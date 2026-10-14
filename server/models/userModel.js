@@ -1,9 +1,9 @@
 ﻿const pool = require("../config/db");
 
-const createUser = async (name, email, role, status, password) => {
+const createUser = async (name, email, status, password) => {
     const result = await pool.query(
-        "INSERT INTO users (name, email, role, status, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-        [name, email, role, status, password]
+        "INSERT INTO users (name, email, status, password_hash) VALUES ($1, $2, $3, $4) RETURNING *",
+        [name, email, status, password]
     )
     return result.rows[0];
 }
@@ -54,6 +54,7 @@ const deactivateUser = async (id) => {
         client.release();
     }
 };
+
 const deleteUser = async (id) => {
     const result = await pool.query(
         "DELETE FROM users WHERE id = $1 RETURNING *",
@@ -72,9 +73,9 @@ const findUserByEmail = async (email) => {
 
 const getUsers = async (req, res) => {
     const result = await pool.query('SELECT COUNT(*) FROM users');
-
     return result.rows[0].count;
 };
+
 
 const getAllUsers = async () => {
     const result = await pool.query('SELECT * FROM users');
@@ -93,10 +94,41 @@ const searchUsers = async (searchTerm) => {
     );
     return results.rows;
 };
-const getAllArticles = async () => {
-    const result = await pool.query('SELECT *, users.name FROM users JOIN articles ON users.id = articles.author_id;');
-    return result.rows;
+
+
+const deleteDraftedArticleById = async (id) => {
+const results = await pool.query(
+        `
+        DELETE FROM articles
+            WHERE id = $1
+        RETURNING*`, [id]
+    );
+    return results.rows[0];
 }
+
+
+const getAllArticles = async (id) => {
+    if (Number(id)) {
+        const result = await pool.query(
+            `SELECT articles.*, users.name
+             FROM articles
+             JOIN users ON users.id = articles.author_id
+             WHERE articles.author_id = $1`,
+            [id]
+        );
+        return result.rows;
+    } else {
+        console.log('not going here...')
+        const result = await pool.query(
+            `SELECT articles.*, users.name
+             FROM articles
+             JOIN users ON users.id = articles.author_id`
+        );
+
+        return result.rows;
+    }
+};
+
 
 const getUserRoleCount = async () => {
     const result = await pool.query(`
@@ -111,6 +143,7 @@ const getUserRoleCount = async () => {
 
 
 const createArticle = async (status, content, author_id) => {
+
     const results = await pool.query(
         `INSERT INTO articles(status, content, author_id)
          VALUES($1, $2, $3) RETURNING*`,
@@ -121,7 +154,6 @@ const createArticle = async (status, content, author_id) => {
 
 
 const updateDraft = async (content, id) => {
-
     const results = await pool.query(
         `UPDATE articles
          SET content = $1
@@ -131,6 +163,8 @@ const updateDraft = async (content, id) => {
     );
     return results.rows[0];
 };
+
+
 
 const publishDraft = async (content, id) => {
     const results = await pool.query(
@@ -144,6 +178,17 @@ const publishDraft = async (content, id) => {
 
     return results.rows[0];
 };
+
+const getArticleByArticleId = async (id) => {
+    console.log('id', id)
+    const results = await pool.query(
+        `
+         SELECT * FROM articles WHERE id = ${id}
+        `,
+    );
+
+    return results.rows[0];
+}
 
 const deleteArticle = async (id) => {
     const results = await pool.query(
@@ -166,8 +211,32 @@ const searchArticles = async (searchTerm) => {
     return results.rows;
 };
 
+const getUserRole = async (id) => {
+    const results = await pool.query(`SELECT roles.name
+         FROM roles
+         JOIN users ON users.id = roles.user_role
+         WHERE users.id = $1`, [id])
+    return results.rows[0];
+}
+
+const createRoleForUser = async (role, id) => {
+    const results = await pool.query(
+        `INSERT INTO roles (name, user_role)
+     VALUES ($1, $2)
+     RETURNING *`,
+        [role, id]
+    );
+
+    return results.rows[0];
+}
+
+
+
 module.exports = {
     createUser,
+    getArticleByArticleId,
+    getUserRole,
+    createRoleForUser,
     editUser,
     deleteUser,
     deactivateUser,
@@ -181,7 +250,8 @@ module.exports = {
     deleteArticle,
     createArticle,
     updateDraft,
-    publishDraft
+    publishDraft,
+    deleteDraftedArticleById
 };
 
 

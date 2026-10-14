@@ -3,11 +3,8 @@ import SettingsTable from "../components/SettingsTable";
 
 const Settings = () => {
 
-
-
     return (
-   
-            <Box sx={{ p: 4 }}>
+            <Box sx={{ p: 4}}>
                 <Typography variant="h4" gutterBottom>
                     User management
                 </Typography>

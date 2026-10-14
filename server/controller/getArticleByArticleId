@@ -1,0 +1,16 @@
+const userModel = require("../models/userModel");
+
+const getArticleByAricleId = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const response = await userModel.getArticleByArticleId(id);
+        return res.status(200).json({
+            message: "Retrieved initial draft",
+            initialDraft:response 
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message });   
+    }
+}
+
+module.exports = getArticleByAricleId;

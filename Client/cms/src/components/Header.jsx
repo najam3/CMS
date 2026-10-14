@@ -3,6 +3,7 @@ import { Avatar, Box, Button, IconButton, Stack, Tooltip, Typography } from "@mu
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import { useNavigate } from "react-router-dom";
+import { capitalizeFirstLetter } from "../utils/utils";
 
 const Header = () => {
     const navigate = useNavigate();
@@ -51,7 +52,7 @@ const Header = () => {
     return (
         <Box component="header" sx={{ ...styles.header }}>
             <Box>
-                <Typography variant="h6" sx={{ ...styles.title }}>Admin Dashboard</Typography>
+                <Typography variant="h6" sx={{ ...styles.title }}>{capitalizeFirstLetter(session?.role)} Dashboard</Typography>
                 <Typography variant="body2" sx={{ ...styles.subtitle }}>Manage your workspace</Typography>
             </Box>
             <Stack direction="row" spacing={1.5} alignItems="center">

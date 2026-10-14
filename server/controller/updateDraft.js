@@ -1,9 +1,8 @@
 const userModel = require('../models/userModel');
 
 const updateDraft = async (req, res) => {
-    console.log(req.body)
-    const { content, id } = req.body;
-     console.log('content', content, id)
+    const { id } = req.params;
+    const { content } = req.body;
     try {
         const updated_draft = await userModel.updateDraft(content, id);
         return res.status(200).json({

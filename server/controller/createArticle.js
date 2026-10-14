@@ -2,7 +2,7 @@ const userModel = require('../models/userModel');
 
 const createArticle = async (req, res) => {
     const { status, content, author_id } = req.body;
-        console.log(status)
+       
     try {
         const created_article = await userModel.createArticle(status, content, author_id);
         return res.status(200).json({

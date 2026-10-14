@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Box, Button, IconButton, InputAdornment, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, FormControl, FormHelperText, IconButton, InputAdornment, InputLabel, MenuItem, Paper, Select, Stack, TextField, Typography } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -10,7 +10,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const Login = () => {
     const navigate = useNavigate();
-    const [form, setForm] = useState({ email: "", password: "" });
+    const [form, setForm] = useState({ email: "", password: "", role: "" });
     const [errors, setErrors] = useState({});
     const [message, setMessage] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -25,14 +25,16 @@ const Login = () => {
 
     const validate = () => {
         const nextErrors = {};
+        console.log(form.role)
         const email = form.email.trim();
         if (!email) nextErrors.email = "Enter your email address.";
         else if (!EMAIL_PATTERN.test(email)) nextErrors.email = "Enter a valid email address.";
         if (!form.password) nextErrors.password = "Enter your password.";
+        if (!form.role || !String(form.role)) nextErrors.role = "Enter your role to login";
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
     };
-
+    
     const handleSubmit = async (event) => {
         event.preventDefault();
         setMessage("");
@@ -43,13 +45,15 @@ const Login = () => {
             const response = await loginUser({
                 email: form.email.trim().toLowerCase(),
                 password: form.password,
+                role: form.role
             });
-            const user = response?.data?.user;
 
-            if (user?.role?.toLowerCase() !== "admin" || !user?.token) {
-                setMessage("Only active administrator accounts can access this portal.");
-                return;
-            }
+            const user = response?.data?.user;
+            
+            // if (user?.role?.toLowerCase() !== "admin" || !user?.token) {
+            //     setMessage("Only active administrator accounts can access this portal.");
+            //     return;
+            // }
 
             localStorage.setItem("signInSession", JSON.stringify(user));
             navigate("/", { replace: true });
@@ -58,9 +62,11 @@ const Login = () => {
             if (status === 401) setMessage("Email or password is incorrect.");
             else if (status === 403) setMessage(error.response?.data?.message || "Only active administrator accounts can access this portal.");
             else if (status === 400) setMessage(error.response?.data?.message || "Check your details and try again.");
+            else if (status === 402) setMessage(error.response?.data?.message || "Please Enter your Role");
             else setMessage("We couldn't sign you in. Please try again.");
         } finally {
             setIsSubmitting(false);
+            console.log('message', message)
         }
     };
 
@@ -83,13 +89,33 @@ const Login = () => {
                         inputProps={{ maxLength: 254 }} />
                     <TextField label="Password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" fullWidth
                         value={form.password} onChange={handleChange} error={Boolean(errors.password)} helperText={errors.password}
-                        InputProps={{ endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword((visible) => !visible)} edge="end">
-                                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                            </InputAdornment>
-                        ) }} />
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword((visible) => !visible)} edge="end">
+                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }} />
+
+                    <FormControl fullWidth>
+                        <FormControl fullWidth error={errors.role}>
+                            <InputLabel id="role-label">Role</InputLabel>
+                            <Select size="medium" onChange={(e) => {
+                                setForm((currentData) => ({ ...currentData, role: e.target.value }))
+                            }}>
+                                <MenuItem value={"admin"}>Admin</MenuItem>
+                                <MenuItem value={"author"}>Author</MenuItem>
+                                <MenuItem value={"editor"}>Editor</MenuItem>
+                            </Select>
+                            <FormHelperText>
+                                {errors.role}
+                            </FormHelperText>
+                        </FormControl>
+                    </FormControl>
+
+
                     <Button type="submit" variant="contained" size="large" disabled={isSubmitting} sx={{ py: 1.4, bgcolor: "primary.main", "&:hover": { bgcolor: "primary.dark" } }}>
                         {isSubmitting ? "Signing in…" : "Sign in"}
                     </Button>

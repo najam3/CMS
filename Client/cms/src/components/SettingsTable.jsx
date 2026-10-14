@@ -29,10 +29,10 @@ export default function SettingsTable() {
         setDeactivating(true);
         try {
             const result = await deactivateUser(selectedUser.id);
-            setRows((currentRows) => currentRows.map((row) => row.id === selectedUser.id
-                ? { ...row, status: "Inactive", deactivate: true }
-                : row
-            ));
+            // setRows((currentRows) => currentRows.map((row) => row.id === selectedUser.id
+            //     ? { ...row, status: "Inactive", deactivate: true }
+            //     : row
+            // ));
             toast.success(result?.message || `${selectedUser.name} was deactivated.`);
             setUserToDeactivate(null);
         } catch (error) {

@@ -1,82 +1,90 @@
 ﻿import { Box, Collapse, List, ListItemButton, ListItemIcon, ListItemText, Paper, Typography } from "@mui/material"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import SettingsIcon from '@mui/icons-material/Settings';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { routes } from "../appRoutes/appRoutes";
 
 const SideBar = () => {
-    const [open, setOpen] = useState(false);
     const [openContent, setOpenContent] = useState(false);
+    const [appAllowedRoutes, setAllowedRoutes] = useState([]);
+    const session = JSON.parse(localStorage.getItem("signInSession") || "null");
+  
+function resourceAccessByRole() {
+    const allowed = routes.filter(({ permissions }) => {
+        if (!permissions) return false;
+        const [roles] = permissions.split(":");
+        const allowedRoles = roles.split("/");
+        return allowedRoles.includes(session.role);
+    });
+    setAllowedRoutes(allowed);
+}
 
-    const handleClick = () => {
-        setOpen(!open);
-    };
 
-    const handleContentClick = () => setOpenContent(!openContent);
+const handleContentClick = (id) => {
+    setOpenContent((currentId) =>
+        currentId === id ? null : id
+    );
+};
+
+
+
+useEffect(() => {
+     resourceAccessByRole()
+}, []);
 
     return (
         <Box sx={layoutStyles}>
             <Paper elevation={3} sx={innerWrapper} className="sidebar">
                 <Typography sx={{ p: 3 }} variant="h6">Bloggy</Typography>
                 <Box>
-                    <ListItemButton>
-                        <ListItemIcon>
-                            <DashboardIcon sx={{ color: 'common.white' }} />
-                        </ListItemIcon>
-                        <ListItemButton sx={{ pl: 0 }} LinkComponent={Link} to={"/"}>
-                            <ListItemText primary="Dashboard" />
-                        </ListItemButton>
-                    </ListItemButton>
+
+                    {
+                         appAllowedRoutes?.map((route, index) => (
+                            <Box key={route?.name}>
+                                {
+                                    route?.lists ? (
+                                        <Box>
+                                            {/* Manage Content */}
+                                            <ListItemButton onClick={() => handleContentClick(index)}>
+                                                <ListItemIcon>
+                                                    {route?.icon}
+                                                </ListItemIcon>
+                                                <ListItemText primary={route?.name} />
+                                                {openContent === index ? <ExpandLess /> : <ExpandMore />}
+                                            </ListItemButton>
+
+                                            <Collapse in={openContent === index} timeout={"auto"} unmountOnExit>
+                                                <List component={"div"} disablePadding>
+                                                    {
+                                                        route?.lists?.map(list => (
+                                                            <ListItemButton LinkComponent={Link} to={list?.url} sx={{ pl: 7 }}>
+                                                                <ListItemText primary={list?.name} />
+                                                            </ListItemButton>
+                                                        ))
+                                                    }
+                                                </List>
+                                            </Collapse>
+                                        </Box>
+                                    ) : (
+                                        <>
+                                            <ListItemButton>
+                                                <ListItemIcon>
+                                                    {route?.icon}
+                                                </ListItemIcon>
+                                                <ListItemButton sx={{ pl: 0 }} LinkComponent={Link} to={"/"}>
+                                                    <ListItemText primary={route?.name} />
+                                                </ListItemButton>
+                                            </ListItemButton>
+
+                                        </>
+                                    )
+                                }
+                            </Box>
+                        ))
+                    }
 
 
-
-                    {/* Manage Content */}
-                    <ListItemButton onClick={handleContentClick}>
-                        <ListItemIcon>
-                            <ContentCopyIcon sx={{ color: 'common.white' }} />
-                        </ListItemIcon>
-                        <ListItemText primary="Manage Content" />
-                        {openContent ? <ExpandLess /> : <ExpandMore />}
-                    </ListItemButton>
-
-                    <Collapse in={openContent} timeout={"auto"} unmountOnExit>
-                        <List component={"div"} disablePadding>
-                            <ListItemButton LinkComponent={Link} to="/allArticles" sx={{ pl: 7 }}>
-                                <ListItemText primary="All Articles" />
-                            </ListItemButton>
-                            <ListItemButton LinkComponent={Link} to="/createArticle" sx={{ pl: 7 }}>
-                                <ListItemText primary="Create new article" />
-                            </ListItemButton>
-                            <ListItemButton LinkComponent={Link} to="/settings" sx={{ pl: 7 }}>
-                                <ListItemText primary="Categories" />
-                            </ListItemButton>
-                        </List>
-                    </Collapse>
-
-
-
-                    {/* Adminstrative Settings */}
-                    <ListItemButton onClick={handleClick}>
-                        <ListItemIcon>
-                            <SettingsIcon sx={{ color: 'common.white' }} />
-                        </ListItemIcon>
-                        <ListItemText primary="Settings" />
-                        {open ? <ExpandLess /> : <ExpandMore />}
-                    </ListItemButton>
-
-                    <Collapse in={open} timeout={"auto"} unmountOnExit>
-                        <List component={"div"} disablePadding>
-                            <ListItemButton LinkComponent={Link} to="/settings" sx={{ pl: 7 }}>
-                                <ListItemText primary="User management" />
-                            </ListItemButton>
-                            <ListItemButton LinkComponent={Link} to="/roles" sx={{ pl: 7 }}>
-                                <ListItemText primary="Roles and Permissions" />
-                            </ListItemButton>
-                        </List>
-                    </Collapse>
 
 
                 </Box>

@@ -1,9 +1,15 @@
 ﻿const path = require("path");
+
+
+
+
+
+
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const express = require("express");
 const cors = require("cors");
-const createUser = require("./controller/createUser");
+// const createUser = require("./controller/createUser");
 const editUser = require("./controller/editUser");
 const deleteUser = require("./controller/deleteUser");
 const getAllUsers = require("./controller/getAllUsers");
@@ -13,15 +19,22 @@ const getUserRoleCount = require("./controller/getUserRoleCount");
 const login = require("./controller/login");
 const createArticle = require("./controller/createArticle");
 const updateDraft = require("./controller/updateDraft");
-const publishDraft = require("./controller/publishDraft");
 const deleteArticle = require("./controller/deleteArticle");
 const searchUser = require("./controller/searchUser");
 const deactivateUser = require("./controller/deactivateUser");
 const requireAdmin = require("./middleware/requireAdmin");
+const createUser = require("./controller/createUser");
+const getArticleByArticleId = require("./controller/getArticleByArticleId");
+const deleteDraftedArticleById = require("./controller/deleteArticleById");
+
+
+
 
 const app = express();
 const api = express.Router();
 app.use(express.json());
+
+
 
 const allowedOrigins = [
     ...(process.env.CLIENT_ORIGINS || "http://localhost:3001")
@@ -38,21 +51,26 @@ app.use(cors({
 }));
 
 api.post("/login", login);
-api.use(requireAdmin);
+// api.use(requireAdmin);
 
-api.post("/createUser", createUser);
-api.post("/editUser", editUser);
-api.post("/deleteUser", deleteUser);
-api.post("/deactivateUser/:id", deactivateUser);
-api.get("/getUsers", getUsers);
-api.get("/getAllUsers", getAllUsers);
-api.get("/getAllArticles", getAllArticles);
-api.get("/getUserRoleCount", getUserRoleCount);
-api.post("/createNewarticle", createArticle);
-api.post("/updateDraft", updateDraft);
-api.post("/publishDraft", publishDraft);
-api.post("/deleteArticle/:id", deleteArticle);
+// Change the resource paths to a noun  
+api.patch("/users/:id/status", deactivateUser);
+api.get("/users/roleCount", getUserRoleCount);
+api.delete("/users/:id", deleteUser);
+api.put("/users/:id", editUser);
+api.post("/users", createUser);     
+api.get("/users", getAllUsers);
+api.get("/users/count", getUsers);
 api.get("/searchUsers", searchUser);
+
+// Article routes
+app.delete("/articles/:id/article", deleteDraftedArticleById)
+app.get("/articles/:id/article", getArticleByArticleId)
+api.patch("/articles/:id", updateDraft);
+api.get("/articles/:id", getAllArticles);
+api.post("/articles", createArticle);
+api.delete("/articles/:id", deleteArticle);
+// api.put("/publishDraft", publishDraft);
 
 // Keep the existing local API URLs working and expose the same router under /api for Netlify.
 app.use(api);

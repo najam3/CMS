@@ -9,7 +9,11 @@ import ArticleCard from "../components/ArticleCard";
 import deleteArticle from "../api/deleteArticle";
 import { toast } from "react-toastify";
 
+
+
+
 const AllArticles = () => {
+    const session = JSON.parse(localStorage.getItem("signInSession") || "null");
     const navigate = useNavigate();
     const [articles, setArticles] = useState([]);
     const [search, setSearch] = useState("");
@@ -21,13 +25,16 @@ const AllArticles = () => {
 
     useEffect(() => {
         let active = true;
-        getAllArticles()
-            .then((results) => { if (active) setArticles(Array.isArray(results?.articles) ? results.articles : []); })
+        getAllArticles(session?.role === 'author' ? session?.id : '0')
+            .then((results) => { 
+                if (active) setArticles(Array.isArray(results?.articles) ? results.articles : []);
+            })
             .catch(() => { if (active) setError(true); })
             .finally(() => { if (active) setLoading(false); });
         return () => { active = false; };
     }, []);
-//   console.log(articles)
+
+
     const counts = useMemo(() => ({
         all: articles.length,
         published: articles.filter((article) => article.status?.trim().toLowerCase() === "published").length,
@@ -72,6 +79,7 @@ const AllArticles = () => {
             setDeletingId(null);
         }
     };
+    
     const filters = [
         { value: "all", label: "All articles", count: counts.all },
         { value: "published", label: "Published", count: counts.published },

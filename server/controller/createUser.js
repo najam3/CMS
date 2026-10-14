@@ -12,21 +12,26 @@ const createUser = async (req, res) => {
                 message: "Name, email, and password are required."
             });
         }
-
+         
         const hashedPassword = await bycrypt.hash(password, 10);
         const normalizedEmail = email.trim().toLowerCase();
+       
         const user = await userModel.createUser(
             name.trim(),
             normalizedEmail,
-            role,
             status,
             hashedPassword
         );
+        console.log('role', role);
+        const storedRole = await userModel.createRoleForUser(role, user.id);
+        const userToReturn = {...user, storedRole};
+        console.log('storedRole', userToReturn)
+        
 
         return res.status(201).json({
             success: true,
             message: "User created successfully.",
-            user
+            user:userToReturn
         });
         
     } catch (error) {

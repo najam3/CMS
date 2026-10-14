@@ -1,6 +1,7 @@
 ﻿import apiClient from "./apiClient";
 
 export default async function deactivateUser(id) {
-    const response = await apiClient.post("/deactivateUser/" + encodeURIComponent(id));
+    console.log("deactivateUser called with id:", id);
+    const response = await apiClient.patch("/users/" + encodeURIComponent(id) + "/status");
     return response.data;
 }
